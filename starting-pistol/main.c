@@ -9,8 +9,10 @@
 #include <errno.h>
 #include <unistd.h>
 
-// http://www.paulgriffiths.net/program/c/srcs/echoservsrc.html
-// http://beej.us/net2/html/syscalls.html
+/*
+http://www.paulgriffiths.net/program/c/srcs/echoservsrc.html
+http://beej.us/net2/html/syscalls.html
+*/
 
 #define MESSAGE "BANG!"
 #define MESSAGE_LEN sizeof(MESSAGE)
@@ -23,11 +25,11 @@ int start_client(const char *server_ip, unsigned short server_port);
 void setup(const char *ip, unsigned short port, int *socket_descriptor, struct sockaddr_in *socket_address);
 
 int main(int argc, char **argv) {
-	if (argc >= 2) {
+	if (argc >= 3) {
 		if (strcmp("client", argv[1]) == 0) {
-			return start_client("127.0.0.1", 9999);
+			return start_client(argv[2], 9999);
 		} else if (strcmp("server", argv[1]) == 0) {
-			return start_server("127.0.0.1", 9999);
+			return start_server(argv[2], 9999);
 		}
 	}
 
@@ -59,6 +61,8 @@ int start_server(const char *listen_address, unsigned short listen_port) {
 	struct sockaddr_in server_address;
 	const char buffer[MESSAGE_LEN];
 	struct timeval message_received_ts;
+
+	printf("attempting server start on %s:%d\n", listen_address, listen_port);
 
 	setup(listen_address, listen_port, &server_socket_descriptor, &server_address);
 
