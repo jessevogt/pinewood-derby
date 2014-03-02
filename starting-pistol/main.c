@@ -9,6 +9,8 @@
 #include <errno.h>
 #include <unistd.h>
 
+#include <curses.h>
+
 /*
 http://www.paulgriffiths.net/program/c/srcs/echoservsrc.html
 http://beej.us/net2/html/syscalls.html
@@ -83,6 +85,7 @@ int start_server(const char *listen_address, unsigned short listen_port) {
 
 		if (strncmp(buffer, MESSAGE, MESSAGE_LEN) == 0) {
 			printf("%ld\n", message_received_ts.tv_sec * 1000 + message_received_ts.tv_usec / 1000);
+			fflush(stdout);
 		}
 
 		if (close(client_socket_descriptor) < 0)
@@ -96,20 +99,36 @@ int start_client(const char *server_ip, unsigned short server_port) {
 	int client_socket_descriptor;
 	struct sockaddr_in client_address;
 	struct sockaddr_in server_address;
+	int user_input;
 
-	setup(NULL, 0, &client_socket_descriptor, &client_address);
+	initscr();
+	noecho();
+	cbreak();
 
-	memset(&server_address, 0, sizeof(server_address));
-	server_address.sin_family = AF_INET;
-	server_address.sin_addr.s_addr = inet_addr(server_ip);
-	server_address.sin_port = htons(server_port);
+	while (1) {
 
-	printf("attempting connect to %s:%d\n", server_ip, server_port);
+		setup(NULL, 0, &client_socket_descriptor, &client_address);
 
-	if (connect(client_socket_descriptor, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
-		DIE_WITH_ERROR("error when attempting to connect to server");
+		memset(&server_address, 0, sizeof(server_address));
+		server_address.sin_family = AF_INET;
+		server_address.sin_addr.s_addr = inet_addr(server_ip);
+		server_address.sin_port = htons(server_port);
 
-	send(client_socket_descriptor, MESSAGE, MESSAGE_LEN, 0);
+		printf("attempting connect to %s:%d\n", server_ip, server_port);
+
+		if (connect(client_socket_descriptor, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
+			DIE_WITH_ERROR("error when attempting to connect to server");
+
+		user_input = getch();	
+		send(client_socket_descriptor, MESSAGE, MESSAGE_LEN, 0);
+
+		if (close(client_socket_descriptor) < 0)
+			DIE_WITH_ERROR("error calling close");
+
+		printf("Message sent\n");
+	}
+
+	endwin();
 
 	return EXIT_SUCCESS;
 }
