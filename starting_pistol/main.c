@@ -80,8 +80,8 @@ int start_server(const char *listen_address, unsigned short listen_port) {
 		if ((client_socket_descriptor = accept(server_socket_descriptor, NULL, NULL)) < 0)
 			DIE_WITH_ERROR("error calling accept");
 
-		gettimeofday(&message_received_ts, NULL);
 		recv(client_socket_descriptor, (void *)buffer, MESSAGE_LEN, 0);
+		gettimeofday(&message_received_ts, NULL);
 
 		if (strncmp(buffer, MESSAGE, MESSAGE_LEN) == 0) {
 			printf("%ld\n", message_received_ts.tv_sec * 1000 + message_received_ts.tv_usec / 1000);
