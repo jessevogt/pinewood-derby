@@ -2,4 +2,6 @@
 /.project
 /java.policy.applet
 
+/regions.data
+
 *.class

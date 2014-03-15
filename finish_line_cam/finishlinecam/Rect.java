@@ -1,6 +1,9 @@
 package finishlinecam;
 
-public class Rect {
+import java.io.Serializable;
+
+@SuppressWarnings("serial")
+public class Rect implements Serializable {
 	final Point topLeft;
 	final int width;
 	final int height;

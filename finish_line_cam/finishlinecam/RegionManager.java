@@ -1,5 +1,11 @@
 package finishlinecam;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,7 +18,7 @@ public class RegionManager {
 	private Region regionToDefine;
 	private Point regionToDefineStartPoint;
 	
-	private final Map<Region, Rect> regions;
+	private Map<Region, Rect> regions;
 
 	public RegionManager(PApplet applet) {
 		this.applet = applet;
@@ -48,17 +54,16 @@ public class RegionManager {
 	}
 	
 	public void draw() {
-		applet.noFill();
-		
 		if (isDefiningRegion()) {
+			applet.noFill();
 			applet.stroke(regionToDefine.red, regionToDefine.green, regionToDefine.blue);
 			applet.rect(
 				regionToDefineStartPoint.x, regionToDefineStartPoint.y,
 				applet.mouseX - regionToDefineStartPoint.x, applet.mouseY - regionToDefineStartPoint.y
 			);
+			
 			applet.fill(regionToDefine.red, regionToDefine.green, regionToDefine.blue);
 			applet.text(regionToDefine.toString(), regionToDefineStartPoint.x, regionToDefineStartPoint.y);
-			applet.noFill();
 		}
 		
 		Region region;
@@ -68,12 +73,44 @@ public class RegionManager {
 			if (rect != null) {
 				region = entry.getKey();
 				
+				applet.noFill();
 				applet.stroke(region.red, region.green, region.blue);
 				applet.rect(rect.topLeft.x, rect.topLeft.y, rect.width, rect.height);
+				
 				applet.fill(region.red, region.green, region.blue);
 				applet.text(region.toString(), rect.topLeft.x, rect.topLeft.y);
-				applet.noFill();
 			}
+		}
+	}
+	
+	public void saveRegions() {
+		try {
+			ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("regions.data"));
+			out.writeObject(regions);
+			out.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void loadRegions() {
+		try {
+			FileInputStream in = new FileInputStream("regions.data");
+			ObjectInputStream reader = new ObjectInputStream(in);
+			regions = (Map<Region, Rect>)reader.readObject();
+			reader.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 }
