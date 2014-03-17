@@ -18,10 +18,16 @@ public class RegionManager {
 	private Region regionToDefine;
 	private Point regionToDefineStartPoint;
 	
+	private final int cameraWidth;
+	private final int cameraHeight;
+	
 	private Map<Region, Rect> regions;
 
-	public RegionManager(PApplet applet) {
+	public RegionManager(PApplet applet, int width, int height) {
 		this.applet = applet;
+		
+		this.cameraWidth = width;
+		this.cameraHeight = height;
 		
 		HashMap<Region, Rect> regions = new HashMap<Region, Rect>();
 		for (Region region : Region.values())
@@ -31,6 +37,7 @@ public class RegionManager {
 	
 	public void setRegionToDefine(Region region) {
 		regionToDefine = region;
+		regionToDefineStartPoint = null;
 	}
 	
 	public boolean isDefiningRegion() {
@@ -45,8 +52,19 @@ public class RegionManager {
 	
 	public void finishDefiningRegion() {
 		if (isDefiningRegion()) {
-			Rect rect = new Rect(regionToDefineStartPoint,
-					applet.mouseX - regionToDefineStartPoint.x, applet.mouseY - regionToDefineStartPoint.y);
+			Point p;
+			int width, height;
+			if (regionToDefine == Region.FINISH_LINE) {
+				p = new Point(0,0);
+				height = cameraHeight;
+				width = Math.max(regionToDefineStartPoint.x, applet.mouseX);
+			} else {
+				p = new Point(0, Math.min(applet.mouseY, regionToDefineStartPoint.y));
+				width = cameraWidth;
+				height = Math.max(applet.mouseY, regionToDefineStartPoint.y) - p.y;
+			}
+			
+			Rect rect = new Rect(p, width, height);
 			regions.put(regionToDefine, rect);
 			regionToDefine = null;
 			regionToDefineStartPoint = null;
@@ -66,21 +84,22 @@ public class RegionManager {
 			applet.text(regionToDefine.toString(), regionToDefineStartPoint.x, regionToDefineStartPoint.y);
 		}
 		
-		Region region;
-		Rect rect;
-		for (Map.Entry<Region, Rect> entry  : regions.entrySet()) {
-			rect = entry.getValue();
-			if (rect != null) {
-				region = entry.getKey();
-				
-				applet.noFill();
-				applet.stroke(region.red, region.green, region.blue);
-				applet.rect(rect.topLeft.x, rect.topLeft.y, rect.width, rect.height);
-				
-				applet.fill(region.red, region.green, region.blue);
-				applet.text(region.toString(), rect.topLeft.x, rect.topLeft.y);
-			}
-		}
+		Rect lane1 = regions.get(Region.LANE1);
+		if (lane1 != null) drawRegion(Region.LANE1, lane1);
+		Rect lane2 = regions.get(Region.LANE2);
+		if (lane2 != null) drawRegion(Region.LANE2, lane2);
+		Rect finish = regions.get(Region.FINISH_LINE);
+		if (finish != null) drawRegion(Region.FINISH_LINE, finish);
+		
+	}
+	
+	private void drawRegion(Region region, Rect rect) {
+		applet.noStroke();
+		applet.fill(region.red, region.green, region.blue, 40);
+		applet.rect(rect.topLeft.x, rect.topLeft.y, rect.width, rect.height);
+
+		applet.fill(region.red, region.green, region.blue);
+		applet.text(region.toString(), rect.topLeft.x + 10, (rect.topLeft.y + rect.height / 2));
 	}
 	
 	public void saveRegions() {
@@ -93,6 +112,10 @@ public class RegionManager {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public Rect getRegionRect(Region region) {
+		return regions.get(region);
 	}
 	
 	@SuppressWarnings("unchecked")

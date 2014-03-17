@@ -10,6 +10,7 @@ public class FinishLineCam extends PApplet {
 	private Camera cam;
 	private RegionManager regionManager;
 	private WinnerProcessor winnerProcessor;
+	private StartingPistol startingPistol;
 	
 	private static enum Mode {
 		DEFINE_REGION, RECORDING, PLAYBACK;
@@ -19,12 +20,16 @@ public class FinishLineCam extends PApplet {
 	private Map<Mode, Map<Integer, Runnable>> modeKeyboardActions;
 	private Map<Integer, Runnable> globalKeyboardActions;
 	
+	private long recordStartTime;
+	
 	@Override
 	public void setup() {
 //		int videoWidth = 1280;
-//		int videoHeight = 800;
-		int videoWidth = 640;
-		int videoHeight = 400;
+//		int videoHeight = 720;
+		int videoWidth = 1280/2;
+		int videoHeight = 720/2;
+//		int videoWidth = 640;
+//		int videoHeight = 400;
 		int videoFrameRate = 30;
 		int secondsToRecordInSegment = 5;
 	
@@ -32,8 +37,9 @@ public class FinishLineCam extends PApplet {
 		frameRate(60);
 		
 		cam = new Camera(this, videoWidth, videoHeight, videoFrameRate, secondsToRecordInSegment);
-		regionManager = new RegionManager(this);
+		regionManager = new RegionManager(this, videoWidth, videoHeight);
 		winnerProcessor = new WinnerProcessor(this, cam, regionManager);
+		startingPistol = new StartingPistol();
 		
 		globalKeyboardActions = new HashMap<Integer, Runnable>();
 		globalKeyboardActions.put(Integer.valueOf('D'), new Runnable() {
@@ -104,9 +110,10 @@ public class FinishLineCam extends PApplet {
 		
 		recordingActions.put(Integer.valueOf(' '), new Runnable() {
 			@Override public void run() {
+				recordStartTime = System.currentTimeMillis();
 				cam.setStartCapturing(new Runnable() {
 					@Override public void run() {
-						winnerProcessor.calc();
+						winnerProcessor.calc(recordStartTime);
 						currentMode = Mode.PLAYBACK;
 					}
 				});
@@ -146,6 +153,8 @@ public class FinishLineCam extends PApplet {
 		});
 		
 		cam.start();
+		
+		startingPistol.listen();
 	}
 
 	@Override
