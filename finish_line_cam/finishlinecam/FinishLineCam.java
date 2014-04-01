@@ -20,8 +20,6 @@ public class FinishLineCam extends PApplet {
 	private Map<Mode, Map<Integer, Runnable>> modeKeyboardActions;
 	private Map<Integer, Runnable> globalKeyboardActions;
 	
-	private long recordStartTime;
-	
 	@Override
 	public void setup() {
 //		int videoWidth = 1280;
@@ -110,13 +108,7 @@ public class FinishLineCam extends PApplet {
 		
 		recordingActions.put(Integer.valueOf(' '), new Runnable() {
 			@Override public void run() {
-				recordStartTime = System.currentTimeMillis();
-				cam.setStartCapturing(new Runnable() {
-					@Override public void run() {
-						winnerProcessor.calc(recordStartTime);
-						currentMode = Mode.PLAYBACK;
-					}
-				});
+				startRace();
 			}
 		});
 		
@@ -154,7 +146,7 @@ public class FinishLineCam extends PApplet {
 		
 		cam.start();
 		
-		startingPistol.listen();
+		startingPistol.listen(this);
 	}
 
 	@Override
@@ -194,5 +186,15 @@ public class FinishLineCam extends PApplet {
 			regionManager.finishDefiningRegion();
 		else
 			regionManager.startDefiningRegion();
+	}
+	
+	public void startRace() {
+		final long recordStartTime = System.currentTimeMillis();
+		cam.setStartCapturing(new Runnable() {
+			@Override public void run() {
+				winnerProcessor.calc(recordStartTime);
+				currentMode = Mode.PLAYBACK;
+			}
+		});
 	}
 }

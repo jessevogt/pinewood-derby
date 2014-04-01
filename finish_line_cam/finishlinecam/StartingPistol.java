@@ -8,7 +8,7 @@ import java.net.Socket;
 
 public class StartingPistol {
 	private Thread thread = null;
-	public void listen() {
+	public void listen(final FinishLineCam flc) {
 		if (thread == null) {
 			thread = new Thread(new Runnable(){
 				@Override public void run() {
@@ -24,7 +24,12 @@ public class StartingPistol {
 						try {
 							Socket client = server.accept();
 							BufferedReader clientReader = new BufferedReader(new InputStreamReader(client.getInputStream()));
-							System.out.println(clientReader.readLine());
+							String msg = clientReader.readLine();
+							System.out.println("Got msg: " + msg);
+							if ("BANG!".equals(msg)) {
+								System.out.println("Starting pistol!");
+								flc.startRace();
+							}
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
